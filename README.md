@@ -1,3 +1,4 @@
+[![](https://jitpack.io/v/SotirisSapak/MSServerConnector.svg)](https://jitpack.io/#SotirisSapak/MSServerConnector)
 # MSServerConnector
 Microsoft Server Connection Helper in Android.
 
