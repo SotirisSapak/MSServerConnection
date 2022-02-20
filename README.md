@@ -1,6 +1,29 @@
 # MSServerConnector
 Microsoft Server Connection Helper in Android.
 
+## Implementation
+This library uses another external library from sourceforge called JDBC. So, you must include this library in your project at app's build.gradle file:
+
+``` gradle
+dependencies {
+    // ...
+    implementation "net.sourceforge.jtds:jtds:1.3.1"
+    // this library
+    implementation 'com.github.SotirisSapak:MSServerConnector:v.1.0.0-beta'
+    // ...
+}
+```
+
+##### !! IMPORTANT !!
+At AndroidManifest.xml file, add these permissions to let your app have access to the internet (and the library to work properly!!):
+
+``` xml
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+
+
 ## Usage
 First of all, you have to initialize all necessary parameters for Microsoft Server Url.
 Params: 
@@ -9,8 +32,8 @@ Params:
 | Ip                  | Ip address of server. If you have an internal internet connection, you can use DESKTOP-XXXXXX info. |
 | Port                | Server port. If you don't have any port, leave it empty!                                            |
 | db_name             | Database name. Must exist in server                                                                 |
-| username            | Your username                                                                                       |
-| password            | Your password                                                                                       |
+| username            | Username credential                                                                                 |
+| password            | Password credential                                                                                 |
 
 ### How to init parameters:
 By using DatabaseHelper class as below:
