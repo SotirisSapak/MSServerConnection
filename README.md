@@ -1,4 +1,4 @@
-# MSServerConnector
+# MSServerConnection
 Microsoft Server Connection Helper in Android.
 
 ## Usage
