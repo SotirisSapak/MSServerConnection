@@ -10,7 +10,7 @@ dependencies {
     // ...
     implementation "net.sourceforge.jtds:jtds:1.3.1"
     // this library
-    implementation 'com.github.SotirisSapak:MSServerConnector:v.1.0.0-beta'
+    implementation 'com.github.SotirisSapak:MSServerConnector:v.1.0.0-beta01'
     // ...
 }
 ```
