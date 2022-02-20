@@ -1,7 +1,6 @@
 package com.libraries.sotirisapakos.msserverconnector;
 
 import android.util.Log;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -9,7 +8,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- *
+ * Class that implements a background task to MS SQLServer database.
+ * <p><b>Recommended use:</b> You may use this class for {@code select sql queries}</p>
+ * <p>To perform other sql queries like {@code insert into...} or
+ * {@code drop table...} prefer {@link Executor Executor} class to implement your own custom
+ * background task.</p>
  */
 public abstract class SimpleQueryRequestHelper{
 
