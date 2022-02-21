@@ -8,14 +8,6 @@ Add
 ``` maven { url 'https://jitpack.io' } ``` to ``` settings.gradle ``` of your project:
 
 ```gradle
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
-        maven { url 'https://jitpack.io' }
-    }
-}
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
