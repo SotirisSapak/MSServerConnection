@@ -3,8 +3,29 @@
 Microsoft Server Connection Helper in Android.
 
 ## Implementation
-This library uses another external library from sourceforge called JDBC. So, you must include this library in your project at app's build.gradle file:
+#### First of all...
+Add 
+``` maven { url 'https://jitpack.io' } ``` to ``` settings.gradle ``` of your project:
 
+```gradle
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+This library uses another external library from sourceforge called JDBC. So, you must include this library in your project at app's build.gradle file:
 ``` gradle
 dependencies {
     // ...
