@@ -72,7 +72,7 @@ public abstract class SimpleQueryRequestHelper{
                 executor.shutdown();
                 onPostExecuteFunction();
             }
-        };
+        }.execute();
     }
 
     public abstract void onPreExecuteFunction();

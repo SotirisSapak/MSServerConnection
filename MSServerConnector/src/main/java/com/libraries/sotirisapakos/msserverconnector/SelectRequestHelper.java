@@ -60,6 +60,7 @@ public abstract class SelectRequestHelper {
                         if(conn != null) conn.close();
                         Log.e("Exception found", TAG +
                                 " - Cannot perform executeQuery() method");
+                        e.printStackTrace();
                     } catch (SQLException throwable) {
                         Log.e("SQLException found", TAG +
                                 " - Cannot perform executeQuery() method");
