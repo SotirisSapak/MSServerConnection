@@ -2,6 +2,8 @@ package com.libraries.sotirisapakos.msserverconnector;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,16 +25,26 @@ public abstract class Executor {
         onPreExecute();
         executors.execute(() -> {
             doInBackground();
-            new Handler(Looper.getMainLooper()).post(this::onPostExecute);
+            new Handler(Looper.getMainLooper()).post(() -> onPostExecute(executors));
         });
     }
 
     public void execute() {
         startBackground();
     }
+    public boolean isShutdown() { return executors.isShutdown(); }
+    public void shutdown(){
+        executors.shutdown();
+    }
 
     public abstract void onPreExecute();
     public abstract void doInBackground();
-    public abstract void onPostExecute();
+
+    /**
+     * Pass {@link ExecutorService} to {@code onPostExecute()} method
+     * enable {@code shutdown()} functionality to Helper classes
+     * @param executor {@link ExecutorService} class
+     */
+    public abstract void onPostExecute(ExecutorService executor);
 
 }

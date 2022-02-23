@@ -8,36 +8,35 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.ExecutorService;
 
-/**
- * Class that implements a background task to MS SQLServer database.
- * <p><b>Recommended use:</b> You may use this class for {@code select sql queries}</p>
- * <p>To perform other sql queries like {@code insert into...} or
- * {@code drop table...} prefer {@link Executor Executor} class to implement your own custom
- * background task.</p>
- */
-@Deprecated
-public abstract class SimpleQueryRequestHelper{
+public abstract class SelectRequestHelper {
 
     private final DatabaseHelper databaseHelper;
+    private static String TAG = "SelectRequestHelper";
 
-    public SimpleQueryRequestHelper(DatabaseHelper databaseHelper, String query){
+    public SelectRequestHelper(DatabaseHelper databaseHelper, String query){
         this.databaseHelper = databaseHelper;
         executeRequest(query);
     }
+    public SelectRequestHelper(DatabaseHelper databaseHelper, String query, String TAG){
+        this.databaseHelper = databaseHelper;
+        SelectRequestHelper.TAG = TAG;
+        executeRequest(query);
+    }
+
     private void executeRequest(String query){
         new Executor() {
             @Override
             public void onPreExecute() {
-                Log.d("SimpleQueryRequest", "... onPreExecute() start running...");
-                onPreExecuteFunction();
+                Log.d(TAG, "... onPreExecute() start running...");
             }
 
             @Override
             public void doInBackground() {
-                Log.d("SimpleQueryRequest", "... doInBackground() start running...");
+                Log.d(TAG, "... doInBackground() start running...");
                 try {
                     Class.forName(DatabaseHelper.DATABASE_LIBRARY_DRIVER);
                 } catch (ClassNotFoundException e) {
+                    Log.e("Exception found", TAG + " - cannot setup jdbc class");
                     e.printStackTrace();
                 }
                 Connection conn = null;
@@ -52,16 +51,18 @@ public abstract class SimpleQueryRequestHelper{
                         conn.close();
                     } else {
                         do {
-                            doInBackgroundFunction(resultSet);
+                            onBackgroundFunctionality(resultSet);
                         } while (resultSet.next());
                     }
                     conn.close();
                 }catch (Exception e){
                     try {
                         if(conn != null) conn.close();
-                        Log.e("Exception found", "Cannot get data from database");
+                        Log.e("Exception found", TAG +
+                                " - Cannot perform executeQuery() method");
                     } catch (SQLException throwable) {
-                        Log.e("SQLException found", "Cannot get data from database");
+                        Log.e("SQLException found", TAG +
+                                " - Cannot perform executeQuery() method");
                         throwable.printStackTrace();
                     }
                 }
@@ -70,13 +71,21 @@ public abstract class SimpleQueryRequestHelper{
             @Override
             public void onPostExecute(ExecutorService executor) {
                 executor.shutdown();
-                onPostExecuteFunction();
+                onFinishFunctionality();
             }
-        };
+        }.execute();
     }
 
-    public abstract void onPreExecuteFunction();
-    public abstract void doInBackgroundFunction(ResultSet resultSet) throws SQLException;
-    public abstract void onPostExecuteFunction();
+    /**
+     * Implement your own functionality on background task.
+     * <p>
+     *     <b>IMPORTANT</b>: {@link ResultSet resultSet} is in do...while loop so do <b>NOT</b>
+     *     add another loop inside {@code onBackgroundFunctionality()} method</p>
+     * @param resultSet {@code executeQuery()} result from your {@code query}
+     * @throws SQLException will probably use {@code resultSet.get...()} methods. These can throw
+     * SQLException
+     */
+    protected abstract void onBackgroundFunctionality(ResultSet resultSet) throws SQLException;
+    protected abstract void onFinishFunctionality();
 
 }
