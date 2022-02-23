@@ -8,7 +8,7 @@ Add
 ``` maven { url 'https://jitpack.io' } ``` to ``` settings.gradle ``` of your project:
 
 ```gradle
-dependencyResolutionManagement {
+allprojects {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
@@ -23,7 +23,7 @@ dependencies {
     // ...
     implementation "net.sourceforge.jtds:jtds:1.3.1"
     // this library
-    implementation 'com.github.SotirisSapak:MSServerConnector:v.1.0.0-beta01'
+    implementation 'com.github.SotirisSapak:MSServerConnector:v.1.0.0-beta02'
     // ...
 }
 ```
@@ -65,7 +65,7 @@ databaseHelper.setPort("your port");
 ### What comes next? 
 The Server request. Should use background task for these type of requests.
 
-#### Approach #1:
+#### Approach #1 - v.1.0.0-beta01:
 Use <b>Executor</b> class to perform this background task. In order to implement this request use Executor class as below:
 
 ``` java
@@ -122,24 +122,34 @@ executor = new Executor() {
 executor.execute();
 
 ```
-#### Approach #2
-Or you can use an abstract class called SimpleQueryRequestHelper as below:
+
+From v.1.0.0-beta02 and after, ``` onPostExecute() ``` function is implemented as below:
 
 ``` java
-SimpleQueryRequestHelper requestHandler;
+@Override
+  public void onPostExecute(ExecutorService executor)
+    // executor.shutdown(); --- should terminate executor --- 
+    // perform action when background task is completed and after executor is terminated!
+  }
+```
+#### Approach #2
+Or you can use an abstract class called SelectRequestHelper as below:
+
+``` java
+
+/* perform action before background task begins */
+SelectRequestHelper requestHandler;
 
 // require a DatabaseHelper and a query
-requestHandler = new SimpleQueryRequestHelper(databaseHelper, query) {
+requestHandler = new SelectRequestHelper(databaseHelper, query, TAG /* not required */) {
+
   @Override
-  public void onPreExecuteFunction(){ /* perform action before background task begins */ }
-  
-  @Override
-  public void doInBackgroundFunction(ResultSet resultSet) throws SQLException {
+  public void onBackgroundFunctionality(ResultSet resultSet) throws SQLException {
     data = resultSet.getString("column label"); // use resultSet as Approach#1
   }
   
   @Override
-  public void onPostExecuteFunction() { /* perform action after background task ends */ )
+  public void onFinishFunctionality() { /* perform action after background task ends */ ) }
 };
 ```
 
@@ -180,18 +190,13 @@ public class SampleActivity extends AppCompatActivity {
       databaseHelper.setConnectionFields(/*do your magic here!*/);  // put your own database parameters
       String query = "select * from POINTS";  // get every record from table called POINTS
       
-      // start the process!
-      new SimpleQueryRequestHelper(databaseHelper, query) {
-        @Override
-        public void onPreExecuteFunction() {
-          // just want to add some log information
-          // hint: You may want to add a refresh panel or fetching data... alert dialog. It's up to you!
-          Log.d("onPre", "onPreExecuteFunction() called");
-        }
+      // just want to add some log information
+      // hint: You may want to add a refresh panel or fetching data... alert dialog. It's up to you!
+      // -- start the process! -- 
+      new SelectRequestHelper(databaseHelper, query) {
 
         @Override
-        public void doInBackgroundFunction(ResultSet resultSet) throws SQLException {
-          Log.d("onPre", "doInBackgroundFunction() started");
+        public void onBackgroundFunctionality(ResultSet resultSet) throws SQLException {
           // create a temporary Point class instance
           Point tempPoint = new Point();
           tempPoint.setX(resultSet.getInt("x"); // table has a column called x
@@ -201,16 +206,13 @@ public class SampleActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onPostExecuteFunction() {
+        public void onFinishFunctionality() {
           // if you have implemented fetching data alert dialog, dismiss() here!
-          Log.d("onPre", "doInBackgroundFunction() finished");
-          Log.d("onPost", "onPostExecuteFunction() started");
           if(points.isEmpty()){/* perform action when table has no records */}
           else {
             // show results in Logcat
             for(Point temp: points) Log.d("results", temp.toString());
           }
-          Log.d("onPost", "onPostExecuteFunction() finished");
         }
       };        
     }
