@@ -220,3 +220,137 @@ public class SampleActivity extends AppCompatActivity {
 
 ```
 
+#### From v.1.0.0-beta03, support for Stored procedure has been added.
+How to add this feature to your app:
+
+#### Example:
+We have a stored procedure in our MS Server database with this script:
+
+``` sql
+create procedure [dbo].[Example]
+        -- The flag title
+        @title varchar(255),	   
+        -- The flag value
+        @value bit,		
+        -- flags counter
+        @count int output		   
+as
+        -- store the flags counter into our output parameter
+        select @count = count(*) from FLAGS	
+	-- update title and value columns of all flags
+	update flags set title=@title, value=@value
+	-- show all flags with the updated values
+	select * from FLAGS;
+go
+```
+
+We want to get the result from ``` @count``` parameter and update the flag parameters by calling the above stored procedure. 
+
+``` java
+/**
+ * In our activity we must init DatabaseHelper class and call StoredProcedureRequestHelper class.
+ */ 
+public class SampleActivity extends AppCompatActivity {
+
+    private static String TAG = "Custom-stored-proc-tag";   // Be careful: must contain max 25 characters
+    
+    private DatabaseHelper databaseHelper;
+    private Map<String, Object>  parameters;
+    private Map<String, Integer> outputParametersStructure;
+    
+    private ArrayList<String> resultData;
+    
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        // .. your code
+        initComponents();
+        setUpDatabaseHelper();
+        setUpData();
+        // we are ready to create the Stored procedure helper
+        StoredProcedureRequestHelper changeFlags = new StoredProcedureRequestHelper
+            (databaseHelper, "dbo.Example" , parameters, TAG){
+            
+            @Override
+            public void handleResultFromStoredProcIfAvailable(ResultSet resultSet) throws SQLException {
+                // Use this function only if you have a result to wait like a SELECT query.
+                // At our example we have a SELECT query.
+                // Will use an ArrayList to hold the data.
+                resultData.add(resultSet.getString("title"));   // "title" is a column in FLAG table
+                // If we have a 'FLAG' table with 4 records, then the resultData arrayList will have 4 values
+            }
+
+            @Override
+            public void handleOnTaskFinished(ArrayList<Object> outParams) {
+                // This method will be called when background task has finished.
+                // OutParams arrayList will contain the output parameter values of the Stored procedure.
+                // Just print it.
+                Toast.makeText(SampleActivity.this, outParams.get(0).toString(), Toast.LENGTH_SHORT).show();    
+                // 0 is params index similar with our outputParameterStructure Map.
+            }
+        
+        };
+        
+        // At this point, if we execute code nothing will happened...
+        // We have to call some other functions too!
+        changeFlags.setFullLog(true);                                       // Not necessary - get full log of 
+                                                                            // what's going on at every step!
+        changeFlags.setAwaitResults(true);                                  // Enable result. (from SELECT queries) 
+        changeFlags.setHasOutParams(true);                                  // Enable output parameters support.
+        changeFlags.setOutParameterStructure(outputParametersStructure);    // Give the output parameters structure
+        // and finally...
+        changeFlags.execute();                                              // ALWAYS call execute() at the END!
+        // Hint: In order to remove these calls, just give more parameters to construtor!
+    }
+    
+    private void initComponents(){
+        parameters = new HashMap<>();
+        outputParametersStructure = new HashMap<>();
+        resultData = new ArrayList<>();
+    }
+    private void setUpDatabaseHelper(){
+        databaseHelper = new DatabaseHelper(this);
+        databaseHelper.setConnectionFields(
+                "your ip",
+                "your port",
+                "your database name",
+                "your username",
+                "your password");
+    }
+    private void setUpData(){
+        // will setup not only parameters, but output parameters structure
+        // start with parameters...
+        // how to set the parameters? Like that: parameters.put("parameter_title", parameter_value);
+        // parameter value could be anything because parameter map support object class and not a String for example.
+        parameters.put("TITLE", "FLAG#CUSTOM_TITLE");   // VARCHAR VALUE
+        parameters.put("VALUE", 1);                     // BIT VALUE
+        // -------------------------------------------------------------
+        // setup output parameter structure as below:
+        // outputParamsStructure.put("output parameter name", type_of_value); // type value should be from java.sql.Types class.
+        outputParametersStructure.put("count", Types.INTEGER); 
+    }
+}
+```
+
+If ``` changeFlags.setFullLog(true); ``` then the Log result will be like this:
+
+``` 
+D/Custom-stored-proc-tag: ... doInBackground() start running...
+D/Custom-stored-proc-tag: ------ parameters to add ------ 
+D/Custom-stored-proc-tag: @TITLE: FLAG#CUSTOM_TITLE
+D/Custom-stored-proc-tag: @VALUE: 1
+D/Custom-stored-proc-tag: ------------------------------- 
+D/Custom-stored-proc-tag: applying parameters to stored procedure...
+D/Custom-stored-proc-tag: Parameters applied to stored procedure
+D/Custom-stored-proc-tag: ------ output parameters structure ------ 
+D/Custom-stored-proc-tag: @count: 4 (MS Server SQL type)
+D/Custom-stored-proc-tag: ----------------------------------------- 
+D/Custom-stored-proc-tag: Register out parameters to stored procedure...
+D/Custom-stored-proc-tag: Register out parameters to stored procedure...Done!
+D/Custom-stored-proc-tag: Passing ResultSet parameter to abstract method...
+D/Custom-stored-proc-tag: ResultSet is: net.sourceforge.jtds.jdbc.JtdsResultSet@2780b4e
+D/Custom-stored-proc-tag: Passing ResultSet parameter to abstract method...Done
+D/Custom-stored-proc-tag: Register out parameters to local array...
+D/Custom-stored-proc-tag: Register {count} at index {0} to local array
+D/Custom-stored-proc-tag: Register out parameters to local array...Done
+``` 
+
