@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService;
 
 public abstract class CustomRequestHelper {
 
-    private DatabaseHelper databaseHelper;
+    private final DatabaseHelper databaseHelper;
     private static String TAG = "CustomRequestHelper";
 
     public CustomRequestHelper(DatabaseHelper databaseHelper, String query){
