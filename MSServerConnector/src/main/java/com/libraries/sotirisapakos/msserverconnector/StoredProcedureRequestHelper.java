@@ -69,6 +69,16 @@ public abstract class StoredProcedureRequestHelper {
      * Internal parameter to show more log data if parameter is true. If false show some basic log.
      */
     private boolean fullLog = false;
+    /**
+     * Internal parameter to inform user if stored procedure throws any exception.
+     * <p>Values:</p>
+     * <ul>
+     *     <li>1: Success</li>
+     *     <li>0: Default (Not executed)</li>
+     *     <li>-1: Error</li>
+     * </ul>
+     */
+    private int procedureValue = 0;
 
     /**
      * Default constructor.
@@ -191,7 +201,7 @@ public abstract class StoredProcedureRequestHelper {
      * <p>Url generated: {@code {call dbo.example(?,?,?)}}</p>
      * @return generated {@link String URL}
      */
-    public String getCallableStatementUrl(){
+    private String getCallableStatementUrl(){
         StringBuilder builder = new StringBuilder();
         // start with basic call...
         // {call dbo.example(
@@ -215,6 +225,14 @@ public abstract class StoredProcedureRequestHelper {
         builder.append(")}");
         // final url at above example: {call dbo.example(?,?,?)}
         return builder.toString();
+    }
+
+    /**
+     * Get procedure value. Call this in {@code handleOnTaskFinished()} method.
+     * @return procedure result
+     */
+    public int getProcedureValue() {
+        return procedureValue;
     }
 
     /**
@@ -280,6 +298,7 @@ public abstract class StoredProcedureRequestHelper {
                     Class.forName(DatabaseHelper.DATABASE_LIBRARY_DRIVER);
                 } catch (ClassNotFoundException e) {
                     Log.e("Exception found", TAG + " - cannot setup jdbc class");
+                    procedureValue = -1;
                     e.printStackTrace();
                 }
                 Connection conn = null;
@@ -322,10 +341,12 @@ public abstract class StoredProcedureRequestHelper {
                         }
 
                         callableStatement.close();
+                        procedureValue = 1;
                     }catch (SQLException e){
                         Log.e("SQLException found", TAG +
                                 " - Cannot perform storedProcedure due " +
                                 "to SQLException...inner try-catch block");
+                        procedureValue = -1;
                         e.printStackTrace();
                     }
 
@@ -336,10 +357,12 @@ public abstract class StoredProcedureRequestHelper {
                         Log.e("Exception found", TAG +
                                 " - Cannot perform storedProcedure");
                         e.printStackTrace();
+                        procedureValue = -1;
                     } catch (SQLException throwable) {
                         Log.e("SQLException found", TAG +
                                 " - Cannot perform storedProcedure");
                         throwable.printStackTrace();
+                        procedureValue = -1;
                     }
                 }
             }
@@ -374,6 +397,7 @@ public abstract class StoredProcedureRequestHelper {
                 } catch (ClassNotFoundException e) {
                     Log.e("Exception found", TAG + " - cannot setup jdbc class");
                     e.printStackTrace();
+                    procedureValue = -1;
                 }
                 Connection conn = null;
                 try {
@@ -434,13 +458,14 @@ public abstract class StoredProcedureRequestHelper {
                         }
                         if(fullLog) Log.d(TAG, "Register out parameters to local array...Done");
 
-
                         callableStatement.close();
+                        procedureValue = 1;
                     }catch (SQLException e){
                         Log.e("SQLException found", TAG +
                                 " - Cannot perform storedProcedure due " +
                                 "to SQLException...inner try-catch block");
                         e.printStackTrace();
+                        procedureValue = -1;
                     }
 
                 }
@@ -450,10 +475,12 @@ public abstract class StoredProcedureRequestHelper {
                         Log.e("Exception found", TAG +
                                 " - Cannot perform storedProcedure");
                         e.printStackTrace();
+                        procedureValue = -1;
                     } catch (SQLException throwable) {
                         Log.e("SQLException found", TAG +
                                 " - Cannot perform storedProcedure");
                         throwable.printStackTrace();
+                        procedureValue = -1;
                     }
                 }
             }
