@@ -23,6 +23,17 @@ public abstract class SelectRequestHelper {
         executeRequest(query);
     }
 
+    /**
+     * Internal parameter to inform user if request throw any exception.
+     * <p>Values:</p>
+     * <ul>
+     *     <li>1: Success</li>
+     *     <li>0: Default (Not executed)</li>
+     *     <li>-1: Error</li>
+     * </ul>
+     */
+    private int result = 0;
+
     private void executeRequest(String query){
         new Executor() {
             @Override
@@ -38,6 +49,7 @@ public abstract class SelectRequestHelper {
                 } catch (ClassNotFoundException e) {
                     Log.e("Exception found", TAG + " - cannot setup jdbc class");
                     e.printStackTrace();
+                    result = -1;
                 }
                 Connection conn = null;
                 try {
@@ -55,16 +67,19 @@ public abstract class SelectRequestHelper {
                         } while (resultSet.next());
                     }
                     conn.close();
+                    result = 1;
                 }catch (Exception e){
                     try {
                         if(conn != null) conn.close();
                         Log.e("Exception found", TAG +
                                 " - Cannot perform executeQuery() method");
                         e.printStackTrace();
+                        result = -1;
                     } catch (SQLException throwable) {
                         Log.e("SQLException found", TAG +
                                 " - Cannot perform executeQuery() method");
                         throwable.printStackTrace();
+                        result = -1;
                     }
                 }
             }
@@ -78,6 +93,15 @@ public abstract class SelectRequestHelper {
     }
 
     /**
+     * Get request result from execution
+     * call this as {@code this.getResult()} at {@code onFinishFunctionality()} method.
+     * @return {@link SelectRequestHelper#result} parameter
+     */
+    public int getResult() {
+        return result;
+    }
+
+    /**
      * Implement your own functionality on background task.
      * <p>
      *     <b>IMPORTANT</b>: {@link ResultSet resultSet} is in do...while loop so do <b>NOT</b>
@@ -87,6 +111,12 @@ public abstract class SelectRequestHelper {
      * SQLException
      */
     protected abstract void onBackgroundFunctionality(ResultSet resultSet) throws SQLException;
+
+    /**
+     * This function will execute when background task has finished.
+     * If you want to check if task has executed successfully call {@code this.getResult()}
+     * method.
+     */
     protected abstract void onFinishFunctionality();
 
 }

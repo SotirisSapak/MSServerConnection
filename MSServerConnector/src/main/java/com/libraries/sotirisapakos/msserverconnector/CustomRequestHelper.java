@@ -13,6 +13,8 @@ public abstract class CustomRequestHelper {
     private final DatabaseHelper databaseHelper;
     private static String TAG = "CustomRequestHelper";
 
+    private int result = 0;
+
     public CustomRequestHelper(DatabaseHelper databaseHelper, String query){
         this.databaseHelper = databaseHelper;
         executeRequest(query);
@@ -38,6 +40,7 @@ public abstract class CustomRequestHelper {
                 } catch (ClassNotFoundException e) {
                     Log.e("Exception found", TAG + " - cannot setup jdbc class");
                     e.printStackTrace();
+                    result = -1;
                 }
                 Connection conn = null;
                 try {
@@ -48,16 +51,19 @@ public abstract class CustomRequestHelper {
                     boolean statementResult = statement.execute(query);
                     onBackgroundFunctionality(statementResult, statement);
                     conn.close();
+                    result = 1;
                 }catch (Exception e){
                     try {
                         if(conn != null) conn.close();
                         Log.e("Exception found", TAG +
                                 " - Cannot perform execute() method");
                         e.printStackTrace();
+                        result = -1;
                     } catch (SQLException throwable) {
                         Log.e("SQLException found", TAG +
                                 " - Cannot perform execute() method");
                         throwable.printStackTrace();
+                        result = -1;
                     }
                 }
             }
@@ -71,6 +77,15 @@ public abstract class CustomRequestHelper {
     }
 
     /**
+     * Get request result from execution
+     * call this as {@code this.getResult()} at {@code onFinishFunctionality()} method.
+     * @return {@link CustomRequestHelper#result} parameter
+     */
+    public int getResult() {
+        return result;
+    }
+
+    /**
      * <h3>Implement your custom server request.</h3>
      * <p>Info: Already executed {@code statement.execute(query)} function.</p>
      * @param statementResult boolean return value of {@code execute()} function.
@@ -78,6 +93,11 @@ public abstract class CustomRequestHelper {
      * @see Statement#execute(String) statement.execute()
      */
     protected abstract void onBackgroundFunctionality(boolean statementResult, Statement statement);
+    /**
+     * This function will execute when background task has finished.
+     * If you want to check if task has executed successfully call {@code this.getResult()}
+     * method.
+     */
     protected abstract void onFinishFunctionality();
 
 }

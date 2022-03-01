@@ -145,6 +145,14 @@ public abstract class StoredProcedureRequestHelper {
     }
 
     /**
+     * Function to set dynamically the stored procedure name
+     * @param procedureName stored procedure name (example: dbo.example)
+     */
+    public void setProcedureName(String procedureName) {
+        this.procedureName = procedureName;
+    }
+
+    /**
      * Function to change store procedure functionality.
      * <p>Call functionality to get output parameters</p>
      * @param hasOutParams {@link Boolean} if store procedure has output parameters
