@@ -15,6 +15,12 @@ public abstract class CustomRequestHelper {
 
     private int result = 0;
 
+    /**
+     * Custom timeout seconds value from constructor
+     * {@link #CustomRequestHelper(DatabaseHelper, String, String, int)}
+     */
+    private int requestTimeoutSeconds = DefaultValues.DEFAULT_REQUEST_TIMEOUT_SECONDS;
+
     public CustomRequestHelper(DatabaseHelper databaseHelper, String query){
         this.databaseHelper = databaseHelper;
         executeRequest(query);
@@ -22,6 +28,13 @@ public abstract class CustomRequestHelper {
     public CustomRequestHelper(DatabaseHelper databaseHelper, String query, String TAG){
         this.databaseHelper = databaseHelper;
         CustomRequestHelper.TAG = TAG;
+        executeRequest(query);
+    }
+    public CustomRequestHelper(DatabaseHelper databaseHelper, String query, String TAG,
+                               int requestTimeoutSeconds){
+        this.databaseHelper = databaseHelper;
+        CustomRequestHelper.TAG = TAG;
+        this.requestTimeoutSeconds = requestTimeoutSeconds;
         executeRequest(query);
     }
 
@@ -44,7 +57,7 @@ public abstract class CustomRequestHelper {
                 }
                 Connection conn = null;
                 try {
-                    DriverManager.setLoginTimeout(4);
+                    DriverManager.setLoginTimeout(requestTimeoutSeconds);
                     conn = DriverManager.getConnection(databaseHelper.getUrl(),
                             databaseHelper.getUsername(), databaseHelper.getPassword());
                     Statement statement = conn.createStatement();

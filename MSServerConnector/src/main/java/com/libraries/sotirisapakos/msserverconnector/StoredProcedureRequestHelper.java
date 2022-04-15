@@ -52,7 +52,15 @@ public abstract class StoredProcedureRequestHelper {
      * <p>{@code outParameterStructure.put(index, Types.INTEGER);}</p>
      */
     private Map<String, Integer> outParameterStructure;
-
+    /**
+     * Custom timeout seconds value from constructor or setter
+     * <p>See: </p>
+     * <ul>
+     *     <li>{@link #StoredProcedureRequestHelper(DatabaseHelper, String, Map, Map, String)}</li>
+     *     <li>{@link #setRequestTimeoutSeconds(int)}</li>
+     * </ul>
+     */
+    private int requestTimeoutSeconds = DefaultValues.DEFAULT_REQUEST_TIMEOUT_SECONDS;
     /**
      * Internal parameter to check if user will wait any {@code SELECT *} functionality inside
      * storeProcedure.
@@ -143,6 +151,35 @@ public abstract class StoredProcedureRequestHelper {
         if(TAG.trim().equals("")) this.TAG = "StoreProcedureRequestHelper";
         else this.TAG = TAG;
     }
+    /**
+     * A customized constructor for setting the storeProcedure name, parameters, output parameters and
+     * custom request timeout. Structure to execute
+     * @param databaseHelper {@link DatabaseHelper} with initialized values
+     * @param procedureName StoreProcedure call name {@code dbo.something}
+     * @param procedureParameters {@link Map} object with parameters
+     * @param outParameterStructure {@link Map} object with output parameters structure
+     * @param TAG procedure {@link android.util.Log} TAG value
+     * @param requestTimeoutSeconds {@link StoredProcedureRequestHelper#requestTimeoutSeconds}
+     */
+    public StoredProcedureRequestHelper
+            (
+                    DatabaseHelper databaseHelper,
+                    String procedureName,
+                    Map<String, Object> procedureParameters,
+                    Map<String, Integer> outParameterStructure,
+                    String TAG,
+                    int requestTimeoutSeconds
+            ){
+        this.databaseHelper = databaseHelper;
+        this.procedureName = procedureName;
+        this.procedureParameters = procedureParameters;
+        this.outParameterStructure = outParameterStructure;
+        hasOutParams = true;
+        this.requestTimeoutSeconds = requestTimeoutSeconds;
+        // if given tag is empty then choose default value instead of an empty string
+        if(TAG.trim().equals("")) this.TAG = "StoreProcedureRequestHelper";
+        else this.TAG = TAG;
+    }
 
     /**
      * Function to set dynamically the stored procedure name
@@ -184,6 +221,14 @@ public abstract class StoredProcedureRequestHelper {
      */
     public void setTAG(String TAG) {
         this.TAG = TAG;
+    }
+
+    /**
+     * Function to set custom request timeout in seconds.
+     * @param requestTimeoutSeconds time in seconds (4 -> 4 seconds timeout)
+     */
+    public void setRequestTimeoutSeconds(int requestTimeoutSeconds) {
+        this.requestTimeoutSeconds = requestTimeoutSeconds;
     }
 
     /**
@@ -311,7 +356,7 @@ public abstract class StoredProcedureRequestHelper {
                 }
                 Connection conn = null;
                 try {
-                    DriverManager.setLoginTimeout(4);
+                    DriverManager.setLoginTimeout(requestTimeoutSeconds);
                     conn = DriverManager.getConnection(databaseHelper.getUrl(),
                             databaseHelper.getUsername(), databaseHelper.getPassword());
                     if(conn == null) return;
@@ -409,7 +454,7 @@ public abstract class StoredProcedureRequestHelper {
                 }
                 Connection conn = null;
                 try {
-                    DriverManager.setLoginTimeout(4);
+                    DriverManager.setLoginTimeout(requestTimeoutSeconds);
                     conn = DriverManager.getConnection(databaseHelper.getUrl(),
                             databaseHelper.getUsername(), databaseHelper.getPassword());
                     if(conn == null) return;

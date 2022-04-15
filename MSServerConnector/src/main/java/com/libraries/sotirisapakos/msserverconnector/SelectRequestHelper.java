@@ -8,6 +8,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.ExecutorService;
 
+/**
+ * Abstract class Implement any select request to MS Server.
+ */
 public abstract class SelectRequestHelper {
 
     private final DatabaseHelper databaseHelper;
@@ -22,6 +25,13 @@ public abstract class SelectRequestHelper {
         SelectRequestHelper.TAG = TAG;
         executeRequest(query);
     }
+    public SelectRequestHelper(DatabaseHelper databaseHelper, String query, String TAG,
+                               int requestTimeoutSeconds) {
+        this.databaseHelper = databaseHelper;
+        this.requestTimeoutSeconds = requestTimeoutSeconds;
+        SelectRequestHelper.TAG = TAG;
+        executeRequest(query);
+    }
 
     /**
      * Internal parameter to inform user if request throw any exception.
@@ -33,6 +43,12 @@ public abstract class SelectRequestHelper {
      * </ul>
      */
     private int result = 0;
+
+    /**
+     * Custom timeout seconds value from constructor
+     * {@link #SelectRequestHelper(DatabaseHelper, String, String, int)}
+     */
+    private int requestTimeoutSeconds = DefaultValues.DEFAULT_REQUEST_TIMEOUT_SECONDS;
 
     private void executeRequest(String query){
         new Executor() {
@@ -53,7 +69,7 @@ public abstract class SelectRequestHelper {
                 }
                 Connection conn = null;
                 try {
-                    DriverManager.setLoginTimeout(4);
+                    DriverManager.setLoginTimeout(requestTimeoutSeconds);
                     conn = DriverManager.getConnection(databaseHelper.getUrl(),
                             databaseHelper.getUsername(), databaseHelper.getPassword());
                     Statement statement = conn.createStatement();

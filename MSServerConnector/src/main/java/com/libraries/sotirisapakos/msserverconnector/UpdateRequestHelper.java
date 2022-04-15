@@ -17,6 +17,8 @@ import java.util.concurrent.ExecutorService;
  */
 public abstract class UpdateRequestHelper {
 
+    private static String TAG = "UpdateRequestHelper";
+
     private final DatabaseHelper databaseHelper;
 
     /**
@@ -27,7 +29,11 @@ public abstract class UpdateRequestHelper {
      */
     private int result = -1;
 
-    private static String TAG = "UpdateRequestHelper";
+    /**
+     * Custom timeout seconds value from constructor
+     * {@link #UpdateRequestHelper(DatabaseHelper, String, String, int)}
+     */
+    private int requestTimeoutSeconds = DefaultValues.DEFAULT_REQUEST_TIMEOUT_SECONDS;
 
     public UpdateRequestHelper(DatabaseHelper databaseHelper, String query){
         this.databaseHelper = databaseHelper;
@@ -36,6 +42,13 @@ public abstract class UpdateRequestHelper {
     public UpdateRequestHelper(DatabaseHelper databaseHelper, String query, String TAG){
         this.databaseHelper = databaseHelper;
         UpdateRequestHelper.TAG = TAG;
+        executeRequest(query);
+    }
+    public UpdateRequestHelper(DatabaseHelper databaseHelper, String query, String TAG,
+                               int requestTimeoutSeconds){
+        this.databaseHelper = databaseHelper;
+        UpdateRequestHelper.TAG = TAG;
+        this.requestTimeoutSeconds = requestTimeoutSeconds;
         executeRequest(query);
     }
 
@@ -59,7 +72,7 @@ public abstract class UpdateRequestHelper {
                 }
                 Connection conn = null;
                 try {
-                    DriverManager.setLoginTimeout(4);
+                    DriverManager.setLoginTimeout(requestTimeoutSeconds);
                     conn = DriverManager.getConnection(databaseHelper.getUrl(),
                             databaseHelper.getUsername(), databaseHelper.getPassword());
                     Statement statement = conn.createStatement();
